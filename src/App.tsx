@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { CashflowChart } from './components/charts/CashflowChart';
-import { GlassCard } from './components/ui/GlassCard';
 import { Sidebar } from './components/ui/Sidebar';
 import { getTotalAvailableBalance } from './data/demoAccounts';
 import { MOCK_BILLS, MOCK_SUBSCRIPTIONS } from './data/mockBilling';
 import { MOCK_TRANSACTIONS } from './data/mockTransactions';
 import { AccountsGrid } from './features/accounts/components/AccountsGrid';
 import { BillingOverview } from './features/billing/components/BillingOverview';
-import { InsightsPanel } from './features/dashboard/components/InsightsPanel';
+import { PremiumMobileDashboard } from './features/dashboard/components/PremiumMobileDashboard';
 import { TransactionForm } from './features/transactions/components/TransactionForm';
 import { TransactionList } from './features/transactions/components/TransactionList';
 import type { Bill, Subscription } from './types/billing';
@@ -144,35 +142,14 @@ function getTabButtonClass(activeTab: AppTab, buttonTab: AppTab) {
 }
 
 function getPageTitle(activeTab: AppTab) {
-  if (activeTab === 'tranzactii') {
-    return 'Tranzactii personale';
-  }
-
-  if (activeTab === 'conturi') {
-    return 'Conturi si carduri';
-  }
-
-  if (activeTab === 'bugete') {
-    return 'Bugete lunare';
-  }
-
-  if (activeTab === 'facturi') {
-    return 'Facturi si abonamente';
-  }
-
-  if (activeTab === 'rapoarte') {
-    return 'Rapoarte financiare';
-  }
-
-  if (activeTab === 'obiective') {
-    return 'Obiective financiare';
-  }
-
-  if (activeTab === 'setari') {
-    return 'Setari si backup';
-  }
-
-  return 'Dashboard financiar personal';
+  if (activeTab === 'tranzactii') return 'Tranzactii personale';
+  if (activeTab === 'conturi') return 'Conturi si carduri';
+  if (activeTab === 'bugete') return 'Bugete lunare';
+  if (activeTab === 'facturi') return 'Facturi si abonamente';
+  if (activeTab === 'rapoarte') return 'Rapoarte financiare';
+  if (activeTab === 'obiective') return 'Obiective financiare';
+  if (activeTab === 'setari') return 'Setari si backup';
+  return 'Dashboard premium mobile';
 }
 
 function getPageDescription(activeTab: AppTab) {
@@ -204,7 +181,7 @@ function getPageDescription(activeTab: AppTab) {
     return 'Modul pregatit pentru backup, export, import si siguranta datelor demo.';
   }
 
-  return 'Control rapid pentru venituri, cheltuieli, sold, conturi si directia financiara a lunii.';
+  return 'Dashboard premium mobile.';
 }
 
 function WorkInProgressPanel({
@@ -243,7 +220,9 @@ function WorkInProgressPanel({
             className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"
           >
             <div className="mb-4 h-10 w-10 rounded-2xl border border-white/10 bg-white/5" />
+
             <p className="text-sm font-semibold text-slate-200">{item}</p>
+
             <p className="mt-2 text-xs leading-5 text-slate-500">
               Acest bloc va fi conectat la date reale/demo intr-un sprint
               dedicat.
@@ -313,13 +292,11 @@ export default function App() {
       .filter((transaction) => transaction.type === 'cheltuiala')
       .reduce((total, transaction) => total + transaction.amount, 0);
 
-    const transactionBalance = income - expense;
     const totalAvailableBalance = getTotalAvailableBalance(transactions);
 
     return {
       income,
       expense,
-      transactionBalance,
       totalAvailableBalance,
     };
   }, [transactions]);
@@ -494,6 +471,29 @@ export default function App() {
     setSearchQuery('');
   };
 
+  const handleQuickAddTransaction = () => {
+    setEditTransaction(null);
+    setActiveTab('tranzactii');
+  };
+
+  if (activeTab === 'dashboard') {
+    return (
+      <div className="min-h-screen bg-slate-200">
+        <PremiumMobileDashboard
+          income={stats.income}
+          expense={stats.expense}
+          totalAvailableBalance={stats.totalAvailableBalance}
+          transactions={transactions}
+          bills={bills}
+          subscriptions={subscriptions}
+          onOpenTransactions={() => setActiveTab('tranzactii')}
+          onOpenBills={() => setActiveTab('facturi')}
+          onQuickAddTransaction={handleQuickAddTransaction}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[#0B1220] text-white">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -599,52 +599,6 @@ export default function App() {
               </button>
             </div>
           </section>
-
-          {activeTab === 'dashboard' && (
-            <>
-              <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <GlassCard
-                  label="Venituri"
-                  value={stats.income}
-                  color="text-emerald-400"
-                />
-
-                <GlassCard
-                  label="Cheltuieli"
-                  value={stats.expense}
-                  color="text-red-400"
-                />
-
-                <GlassCard
-                  label="Sold disponibil"
-                  value={stats.totalAvailableBalance}
-                  color="text-blue-400"
-                />
-              </section>
-
-              <section>
-                <AccountsGrid transactions={transactions} />
-              </section>
-
-              <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_1fr]">
-                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 shadow-2xl backdrop-blur-xl">
-                  <div className="mb-5">
-                    <h2 className="text-xl font-semibold text-white">
-                      Cashflow lunar
-                    </h2>
-
-                    <p className="mt-1 text-sm text-slate-400">
-                      Comparatie simpla intre venituri si cheltuieli.
-                    </p>
-                  </div>
-
-                  <CashflowChart transactions={transactions} />
-                </div>
-
-                <InsightsPanel transactions={transactions} />
-              </section>
-            </>
-          )}
 
           {activeTab === 'tranzactii' && (
             <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.9fr_1.1fr]">

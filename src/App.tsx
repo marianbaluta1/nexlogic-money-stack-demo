@@ -1,25 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react';
 
-import { CashflowChart } from "./components/charts/CashflowChart";
-import { GlassCard } from "./components/ui/GlassCard";
-import { Sidebar } from "./components/ui/Sidebar";
-import { getTotalAvailableBalance } from "./data/demoAccounts";
-import { MOCK_BILLS, MOCK_SUBSCRIPTIONS } from "./data/mockBilling";
-import { MOCK_TRANSACTIONS } from "./data/mockTransactions";
-import { AccountsGrid } from "./features/accounts/components/AccountsGrid";
-import { BillingOverview } from "./features/billing/components/BillingOverview";
-import { InsightsPanel } from "./features/dashboard/components/InsightsPanel";
-import { TransactionForm } from "./features/transactions/components/TransactionForm";
-import { TransactionList } from "./features/transactions/components/TransactionList";
-import type { Bill, Subscription } from "./types/billing";
-import type { Transaction } from "./types/transactions";
+import { CashflowChart } from './components/charts/CashflowChart';
+import { GlassCard } from './components/ui/GlassCard';
+import { Sidebar } from './components/ui/Sidebar';
+import { getTotalAvailableBalance } from './data/demoAccounts';
+import { MOCK_BILLS, MOCK_SUBSCRIPTIONS } from './data/mockBilling';
+import { MOCK_TRANSACTIONS } from './data/mockTransactions';
+import { AccountsGrid } from './features/accounts/components/AccountsGrid';
+import { BillingOverview } from './features/billing/components/BillingOverview';
+import { InsightsPanel } from './features/dashboard/components/InsightsPanel';
+import { TransactionForm } from './features/transactions/components/TransactionForm';
+import { TransactionList } from './features/transactions/components/TransactionList';
+import type { Bill, Subscription } from './types/billing';
+import type { Transaction } from './types/transactions';
 
-const TRANSACTIONS_STORAGE_KEY = "nexlogic-money-transactions";
-const BILLS_STORAGE_KEY = "nexlogic-money-bills";
-const SUBSCRIPTIONS_STORAGE_KEY = "nexlogic-money-subscriptions";
+const TRANSACTIONS_STORAGE_KEY = 'nexlogic-money-transactions';
+const BILLS_STORAGE_KEY = 'nexlogic-money-bills';
+const SUBSCRIPTIONS_STORAGE_KEY = 'nexlogic-money-subscriptions';
 
-type TransactionFilter = "toate" | "venit" | "cheltuiala";
-type AppTab = "dashboard" | "tranzactii" | "facturi";
+type TransactionFilter = 'toate' | 'venit' | 'cheltuiala';
+
+type AppTab =
+  | 'dashboard'
+  | 'tranzactii'
+  | 'conturi'
+  | 'bugete'
+  | 'facturi'
+  | 'rapoarte'
+  | 'obiective'
+  | 'setari';
 
 function loadTransactionsFromStorage() {
   try {
@@ -98,7 +107,7 @@ function saveSubscriptionsToStorage(subscriptions: Subscription[]) {
 
 function getNextRenewalDate(
   renewalDate: string,
-  frequency: Subscription["frequency"]
+  frequency: Subscription['frequency']
 ) {
   const date = new Date(`${renewalDate}T12:00:00`);
 
@@ -106,7 +115,7 @@ function getNextRenewalDate(
     return renewalDate;
   }
 
-  if (frequency === "lunar") {
+  if (frequency === 'lunar') {
     date.setMonth(date.getMonth() + 1);
   } else {
     date.setFullYear(date.getFullYear() + 1);
@@ -122,40 +131,128 @@ function getFilterButtonClass(
   const isActive = currentFilter === buttonFilter;
 
   return isActive
-    ? "rounded-full border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-300 shadow-lg shadow-emerald-500/10"
-    : "rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-slate-200";
+    ? 'rounded-full border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-300 shadow-lg shadow-emerald-500/10'
+    : 'rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-slate-200';
 }
 
 function getTabButtonClass(activeTab: AppTab, buttonTab: AppTab) {
   const isActive = activeTab === buttonTab;
 
   return isActive
-    ? "rounded-2xl border border-emerald-400/40 bg-emerald-500/15 px-5 py-3 text-sm font-semibold text-emerald-300 shadow-lg shadow-emerald-500/10"
-    : "rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-slate-200";
+    ? 'rounded-2xl border border-emerald-400/40 bg-emerald-500/15 px-5 py-3 text-sm font-semibold text-emerald-300 shadow-lg shadow-emerald-500/10'
+    : 'rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-400 transition hover:border-white/20 hover:bg-white/10 hover:text-slate-200';
 }
 
 function getPageTitle(activeTab: AppTab) {
-  if (activeTab === "tranzactii") {
-    return "Tranzactii personale";
+  if (activeTab === 'tranzactii') {
+    return 'Tranzactii personale';
   }
 
-  if (activeTab === "facturi") {
-    return "Facturi si abonamente";
+  if (activeTab === 'conturi') {
+    return 'Conturi si carduri';
   }
 
-  return "Dashboard financiar personal";
+  if (activeTab === 'bugete') {
+    return 'Bugete lunare';
+  }
+
+  if (activeTab === 'facturi') {
+    return 'Facturi si abonamente';
+  }
+
+  if (activeTab === 'rapoarte') {
+    return 'Rapoarte financiare';
+  }
+
+  if (activeTab === 'obiective') {
+    return 'Obiective financiare';
+  }
+
+  if (activeTab === 'setari') {
+    return 'Setari si backup';
+  }
+
+  return 'Dashboard financiar personal';
 }
 
 function getPageDescription(activeTab: AppTab) {
-  if (activeTab === "tranzactii") {
-    return "Zona separata pentru adaugare, editare, stergere, filtrare si cautare tranzactii.";
+  if (activeTab === 'tranzactii') {
+    return 'Zona separata pentru adaugare, editare, stergere, filtrare si cautare tranzactii.';
   }
 
-  if (activeTab === "facturi") {
-    return "Zona demo pentru facturi, scadente, abonamente si plati urmarite manual.";
+  if (activeTab === 'conturi') {
+    return 'Zona dedicata pentru solduri separate, conturi, carduri si disponibil total.';
   }
 
-  return "Control rapid pentru venituri, cheltuieli, sold, conturi si directia financiara a lunii.";
+  if (activeTab === 'bugete') {
+    return 'Modul pregatit pentru limite lunare, bugete pe categorii si suma ramasa disponibila.';
+  }
+
+  if (activeTab === 'facturi') {
+    return 'Zona demo pentru facturi, scadente, abonamente si plati urmarite manual.';
+  }
+
+  if (activeTab === 'rapoarte') {
+    return 'Modul pregatit pentru analiza lunara, categorii, evolutie si comparatii.';
+  }
+
+  if (activeTab === 'obiective') {
+    return 'Modul pregatit pentru economii, tinte financiare si progres.';
+  }
+
+  if (activeTab === 'setari') {
+    return 'Modul pregatit pentru backup, export, import si siguranta datelor demo.';
+  }
+
+  return 'Control rapid pentru venituri, cheltuieli, sold, conturi si directia financiara a lunii.';
+}
+
+function WorkInProgressPanel({
+  title,
+  description,
+  items,
+}: {
+  title: string;
+  description: string;
+  items: string[];
+}) {
+  return (
+    <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl backdrop-blur-xl">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="w-fit rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+            Modul in lucru
+          </div>
+
+          <h2 className="mt-5 text-2xl font-bold text-white">{title}</h2>
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+            {description}
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-4 text-sm text-emerald-200 shadow-lg shadow-emerald-500/10">
+          Pregatit pentru Sprint urmator
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        {items.map((item) => (
+          <div
+            key={item}
+            className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"
+          >
+            <div className="mb-4 h-10 w-10 rounded-2xl border border-white/10 bg-white/5" />
+            <p className="text-sm font-semibold text-slate-200">{item}</p>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              Acest bloc va fi conectat la date reale/demo intr-un sprint
+              dedicat.
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default function App() {
@@ -174,10 +271,10 @@ export default function App() {
   );
 
   const [transactionFilter, setTransactionFilter] =
-    useState<TransactionFilter>("toate");
+    useState<TransactionFilter>('toate');
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<AppTab>("dashboard");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
 
   useEffect(() => {
     saveTransactionsToStorage(transactions);
@@ -196,7 +293,7 @@ export default function App() {
 
     return transactions.filter((transaction) => {
       const matchesType =
-        transactionFilter === "toate" || transaction.type === transactionFilter;
+        transactionFilter === 'toate' || transaction.type === transactionFilter;
 
       const matchesSearch =
         normalizedSearchQuery.length === 0 ||
@@ -209,11 +306,11 @@ export default function App() {
 
   const stats = useMemo(() => {
     const income = transactions
-      .filter((transaction) => transaction.type === "venit")
+      .filter((transaction) => transaction.type === 'venit')
       .reduce((total, transaction) => total + transaction.amount, 0);
 
     const expense = transactions
-      .filter((transaction) => transaction.type === "cheltuiala")
+      .filter((transaction) => transaction.type === 'cheltuiala')
       .reduce((total, transaction) => total + transaction.amount, 0);
 
     const transactionBalance = income - expense;
@@ -231,14 +328,14 @@ export default function App() {
 
   const health =
     stats.income === 0
-      ? { label: "No data", color: "text-gray-400" }
+      ? { label: 'No data', color: 'text-gray-400' }
       : ratio < 0.5
-        ? { label: "Strong", color: "text-emerald-400" }
-        : ratio < 0.8
-          ? { label: "Stable", color: "text-blue-400" }
-          : { label: "Risk", color: "text-red-400" };
+      ? { label: 'Strong', color: 'text-emerald-400' }
+      : ratio < 0.8
+      ? { label: 'Stable', color: 'text-blue-400' }
+      : { label: 'Risk', color: 'text-red-400' };
 
-  const handleAddTransaction = (transactionData: Omit<Transaction, "id">) => {
+  const handleAddTransaction = (transactionData: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       id: `t${Date.now()}`,
       ...transactionData,
@@ -249,25 +346,27 @@ export default function App() {
       ...currentTransactions,
     ]);
 
-    setTransactionFilter("toate");
-    setSearchQuery("");
-    setActiveTab("tranzactii");
+    setTransactionFilter('toate');
+    setSearchQuery('');
+    setActiveTab('tranzactii');
   };
 
   const handleEditTransaction = (transaction: Transaction) => {
     setEditTransaction(transaction);
-    setActiveTab("tranzactii");
+    setActiveTab('tranzactii');
   };
 
   const handleUpdateTransaction = (updatedTransaction: Transaction) => {
     setTransactions((currentTransactions) =>
       currentTransactions.map((transaction) =>
-        transaction.id === updatedTransaction.id ? updatedTransaction : transaction
+        transaction.id === updatedTransaction.id
+          ? updatedTransaction
+          : transaction
       )
     );
 
     setEditTransaction(null);
-    setActiveTab("tranzactii");
+    setActiveTab('tranzactii');
   };
 
   const handleCancelEdit = () => {
@@ -288,11 +387,11 @@ export default function App() {
 
   const handleAddBill = (bill: Bill) => {
     setBills((currentBills) => [bill, ...currentBills]);
-    setActiveTab("facturi");
+    setActiveTab('facturi');
   };
 
   const handlePayBill = (bill: Bill) => {
-    if (bill.status === "platita" || !bill.paymentAccountId) {
+    if (bill.status === 'platita' || !bill.paymentAccountId) {
       return;
     }
 
@@ -307,7 +406,7 @@ export default function App() {
       description: `Factura ${bill.provider}`,
       date: paymentDate,
       category: bill.category,
-      type: "cheltuiala",
+      type: 'cheltuiala',
     };
 
     setBills((currentBills) =>
@@ -315,7 +414,7 @@ export default function App() {
         currentBill.id === bill.id
           ? {
               ...currentBill,
-              status: "platita",
+              status: 'platita',
               paymentDate,
               updatedAt,
             }
@@ -328,13 +427,13 @@ export default function App() {
       ...currentTransactions,
     ]);
 
-    setTransactionFilter("toate");
-    setSearchQuery("");
-    setActiveTab("facturi");
+    setTransactionFilter('toate');
+    setSearchQuery('');
+    setActiveTab('facturi');
   };
 
   const handlePaySubscription = (subscription: Subscription) => {
-    if (subscription.status !== "activ" || !subscription.paymentAccountId) {
+    if (subscription.status !== 'activ' || !subscription.paymentAccountId) {
       return;
     }
 
@@ -353,7 +452,7 @@ export default function App() {
       description: `Abonament ${subscription.name}`,
       date: paymentDate,
       category: subscription.category,
-      type: "cheltuiala",
+      type: 'cheltuiala',
     };
 
     setSubscriptions((currentSubscriptions) =>
@@ -373,9 +472,9 @@ export default function App() {
       ...currentTransactions,
     ]);
 
-    setTransactionFilter("toate");
-    setSearchQuery("");
-    setActiveTab("facturi");
+    setTransactionFilter('toate');
+    setSearchQuery('');
+    setActiveTab('facturi');
   };
 
   const handleResetTransactions = () => {
@@ -383,21 +482,21 @@ export default function App() {
     setBills(MOCK_BILLS);
     setSubscriptions(MOCK_SUBSCRIPTIONS);
     setEditTransaction(null);
-    setTransactionFilter("toate");
-    setSearchQuery("");
-    setActiveTab("dashboard");
+    setTransactionFilter('toate');
+    setSearchQuery('');
+    setActiveTab('dashboard');
     localStorage.removeItem(TRANSACTIONS_STORAGE_KEY);
     localStorage.removeItem(BILLS_STORAGE_KEY);
     localStorage.removeItem(SUBSCRIPTIONS_STORAGE_KEY);
   };
 
   const handleClearSearch = () => {
-    setSearchQuery("");
+    setSearchQuery('');
   };
 
   return (
     <div className="flex min-h-screen bg-[#0B1220] text-white">
-      <Sidebar />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="flex-1 overflow-hidden">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10">
@@ -437,31 +536,71 @@ export default function App() {
             <div className="flex flex-wrap gap-3 border-t border-white/10 pt-5">
               <button
                 type="button"
-                onClick={() => setActiveTab("dashboard")}
-                className={getTabButtonClass(activeTab, "dashboard")}
+                onClick={() => setActiveTab('dashboard')}
+                className={getTabButtonClass(activeTab, 'dashboard')}
               >
                 Dashboard
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveTab("tranzactii")}
-                className={getTabButtonClass(activeTab, "tranzactii")}
+                onClick={() => setActiveTab('tranzactii')}
+                className={getTabButtonClass(activeTab, 'tranzactii')}
               >
                 Tranzactii
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveTab("facturi")}
-                className={getTabButtonClass(activeTab, "facturi")}
+                onClick={() => setActiveTab('conturi')}
+                className={getTabButtonClass(activeTab, 'conturi')}
               >
-                Facturi & Abonamente
+                Conturi
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('bugete')}
+                className={getTabButtonClass(activeTab, 'bugete')}
+              >
+                Bugete
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('facturi')}
+                className={getTabButtonClass(activeTab, 'facturi')}
+              >
+                Facturi
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('rapoarte')}
+                className={getTabButtonClass(activeTab, 'rapoarte')}
+              >
+                Rapoarte
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('obiective')}
+                className={getTabButtonClass(activeTab, 'obiective')}
+              >
+                Obiective
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('setari')}
+                className={getTabButtonClass(activeTab, 'setari')}
+              >
+                Setari
               </button>
             </div>
           </section>
 
-          {activeTab === "dashboard" && (
+          {activeTab === 'dashboard' && (
             <>
               <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <GlassCard
@@ -507,7 +646,7 @@ export default function App() {
             </>
           )}
 
-          {activeTab === "tranzactii" && (
+          {activeTab === 'tranzactii' && (
             <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <TransactionForm
                 onAdd={handleAddTransaction}
@@ -533,10 +672,10 @@ export default function App() {
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => setTransactionFilter("toate")}
+                        onClick={() => setTransactionFilter('toate')}
                         className={getFilterButtonClass(
                           transactionFilter,
-                          "toate"
+                          'toate'
                         )}
                       >
                         Toate
@@ -544,10 +683,10 @@ export default function App() {
 
                       <button
                         type="button"
-                        onClick={() => setTransactionFilter("venit")}
+                        onClick={() => setTransactionFilter('venit')}
                         className={getFilterButtonClass(
                           transactionFilter,
-                          "venit"
+                          'venit'
                         )}
                       >
                         Venituri
@@ -555,10 +694,10 @@ export default function App() {
 
                       <button
                         type="button"
-                        onClick={() => setTransactionFilter("cheltuiala")}
+                        onClick={() => setTransactionFilter('cheltuiala')}
                         className={getFilterButtonClass(
                           transactionFilter,
-                          "cheltuiala"
+                          'cheltuiala'
                         )}
                       >
                         Cheltuieli
@@ -584,14 +723,14 @@ export default function App() {
                   </div>
 
                   <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-400">
-                    Afisate:{" "}
+                    Afisate:{' '}
                     <span className="font-semibold text-slate-200">
                       {filteredTransactions.length}
-                    </span>{" "}
-                    din{" "}
+                    </span>{' '}
+                    din{' '}
                     <span className="font-semibold text-slate-200">
                       {transactions.length}
-                    </span>{" "}
+                    </span>{' '}
                     tranzactii
                   </div>
                 </div>
@@ -605,13 +744,63 @@ export default function App() {
             </section>
           )}
 
-          {activeTab === "facturi" && (
+          {activeTab === 'conturi' && (
+            <section>
+              <AccountsGrid transactions={transactions} />
+            </section>
+          )}
+
+          {activeTab === 'bugete' && (
+            <WorkInProgressPanel
+              title="Bugete lunare"
+              description="Aici vom construi zona pentru buget lunar, limite pe categorii si avertizare cand o categorie se apropie de limita."
+              items={[
+                'Buget total lunar',
+                'Limite pe categorii',
+                'Cheltuit vs ramas',
+              ]}
+            />
+          )}
+
+          {activeTab === 'facturi' && (
             <BillingOverview
               bills={bills}
               subscriptions={subscriptions}
               onAddBill={handleAddBill}
               onPayBill={handlePayBill}
               onPaySubscription={handlePaySubscription}
+            />
+          )}
+
+          {activeTab === 'rapoarte' && (
+            <WorkInProgressPanel
+              title="Rapoarte financiare"
+              description="Aici vom construi rapoarte lunare pentru venituri, cheltuieli, categorii si evolutia cashflow-ului."
+              items={[
+                'Raport lunar',
+                'Cheltuieli pe categorii',
+                'Evolutie venituri si cheltuieli',
+              ]}
+            />
+          )}
+
+          {activeTab === 'obiective' && (
+            <WorkInProgressPanel
+              title="Obiective financiare"
+              description="Aici vom construi tinte de economisire, progres vizual si calcule simple pentru obiective personale."
+              items={[
+                'Fond de urgenta',
+                'Economii pentru planuri',
+                'Progres obiectiv',
+              ]}
+            />
+          )}
+
+          {activeTab === 'setari' && (
+            <WorkInProgressPanel
+              title="Setari si backup"
+              description="Aici vom construi zona pentru reset demo, export/import date si siguranta informatiilor salvate local."
+              items={['Export date', 'Import date', 'Reset si siguranta demo']}
             />
           )}
         </div>
